@@ -1,0 +1,40 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright 2026 Nimesh Cheedella */
+
+@import "tailwindcss";
+
+@theme {
+  /* Heisenberg dark theme — pinned in plan brand-tokens.json */
+  --color-background: #0d1117;
+  --color-foreground: #cccccc;
+  --color-card: #161b22;
+  --color-card-foreground: #cccccc;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1f2937;
+  --color-secondary-foreground: #f3f4f6;
+  --color-muted: #1c2128;
+  --color-muted-foreground: #9ca3af;
+  --color-border: #30363d;
+  --color-accent-error: #ef4444;
+
+  --font-family-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Roboto",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Menlo", "Monaco", "Consolas",
+    monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-family-ui);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
