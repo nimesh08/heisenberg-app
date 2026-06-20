@@ -3,32 +3,78 @@
 
 """FastAPI application entry point.
 
-This module is intentionally minimal at scaffold time. Routers, middleware,
-and lifespan setup are added in later todos. For now it exposes a healthcheck
-so CI can boot the app and confirm imports are clean.
+Wires the lifespan that runs the Postgres preflight, the placeholder ops
+routes (/healthz, /readyz, /metrics), and (in later todos) the auth, workspace,
+jobs, transpile, LSP, and billing routers.
 """
 
 from __future__ import annotations
 
+import logging
 import os
+from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
+
+from .config import get_settings
+from .db import StartupCheckError, verify_postgres_ready
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Boot-time + shutdown hooks."""
+    settings = get_settings()
+    try:
+        info = await verify_postgres_ready()
+        app.state.db_ready = True
+        app.state.db_info = info
+        logger.info(
+            "postgres_preflight_ok",
+            extra={
+                "server_major": info["server_major"],
+                "extensions_present": info["extensions_present"],
+            },
+        )
+    except StartupCheckError as e:
+        # Re-raise so the app refuses to boot. CI / systemd will see the failure.
+        logger.error("postgres_preflight_failed: %s", e)
+        raise
+    # Future: warm caches (chip registry from heisenberg-photon), open Stripe SDK, etc.
+    _ = settings  # placeholder reference until real init lands
+    yield
+    # Shutdown: nothing to clean up at scaffold time.
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Heisenberg jobsvc",
         version="0.1.0",
-        # Mount API under /api/v1; ops routes (/healthz, /readyz, /metrics)
-        # land at the root for Kubernetes/Caddy probes.
         openapi_url="/api/v1/openapi.json",
         docs_url="/api/v1/docs",
         redoc_url="/api/v1/redoc",
+        lifespan=lifespan,
     )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
+        """Liveness — does not touch the database."""
         return {"status": "ok"}
+
+    @app.get("/readyz")
+    async def readyz() -> dict[str, Any]:
+        """Readiness — confirms Postgres + extensions on demand."""
+        try:
+            info = await verify_postgres_ready()
+        except StartupCheckError as e:
+            return {"status": "not_ready", "reason": str(e)}
+        return {
+            "status": "ready",
+            "server_major": info["server_major"],
+            "extensions_present": info["extensions_present"],
+        }
 
     return app
 
@@ -48,4 +94,4 @@ def run() -> None:
     )
 
 
-__all__ = ["app", "create_app", "run"]
+__all__ = ["app", "create_app", "run", "lifespan"]
