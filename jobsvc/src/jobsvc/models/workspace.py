@@ -36,11 +36,12 @@ if TYPE_CHECKING:  # pragma: no cover
     from .user import User
 
 
-# Path validation: max 256 chars, no '..', no leading slash, no NUL byte,
-# no backslash. Enforced at the API layer too (defense in depth).
+# Path validation: max 256 chars, no '..', no leading slash, no backslash.
+# NUL byte rejection is left to Postgres's UTF-8 layer (text columns can't
+# hold them) plus API-layer validation. Embedding E'\x00' in a CHECK
+# constraint trips psycopg3's UTF-8 encoder during DDL emit.
 _PATH_CHECK = (
     "length(path) > 0 AND length(path) <= 256 "
-    "AND position(E'\\x00' in path) = 0 "
     "AND path NOT LIKE '/%' "
     "AND path NOT LIKE '..%' "
     "AND path NOT LIKE '%..%'"
