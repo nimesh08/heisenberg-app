@@ -1,0 +1,57 @@
+# Author: Nimesh Cheedella <chnimesh0808@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.eggs/
+build/
+dist/
+*.so
+
+# uv
+.uv/
+uv.lock
+
+# Node / Next.js
+node_modules/
+.next/
+.turbo/
+.eslintcache
+.pnpm-store/
+out/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*~
+
+# Test / coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Local secrets and DBs (never commit)
+.env
+.env.local
+.env.*.local
+*.local.db
+secrets/
+/etc-heisenberg-secrets/
+
+# Build artefacts
+/web/.next/
+/web/out/
+/web/coverage/
+/jobsvc/dist/
+/jobsvc/build/
+/launcher/dist/
+/docs/site/.cache/
