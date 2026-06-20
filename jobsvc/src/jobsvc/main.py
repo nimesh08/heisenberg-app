@@ -21,6 +21,7 @@ from .config import get_settings
 from .db import StartupCheckError, verify_postgres_ready
 from .middleware.auth import AuthContextMiddleware
 from .routers import auth as auth_router
+from .routers import workspaces as workspaces_router
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(AuthContextMiddleware)
     app.include_router(auth_router.router)
+    app.include_router(workspaces_router.router)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
