@@ -1,0 +1,27 @@
+[project]
+name = "heisenberg-launcher"
+version = "0.1.0"
+description = "Heisenberg launcher — `heisenberg` CLI for setup, run, update-ide, backup"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Nimesh Cheedella", email = "chnimesh0808@gmail.com" }]
+
+dependencies = [
+  "click>=8.1,<9.0",
+  "httpx>=0.27,<1.0",
+  "rich>=13,<15",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.2,<10", "pytest-asyncio>=0.23,<1.0"]
+
+[project.scripts]
+heisenberg = "heisenberg.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/heisenberg"]
