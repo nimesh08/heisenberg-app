@@ -19,6 +19,8 @@ from fastapi import FastAPI
 
 from .config import get_settings
 from .db import StartupCheckError, verify_postgres_ready
+from .middleware.auth import AuthContextMiddleware
+from .routers import auth as auth_router
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,9 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    app.add_middleware(AuthContextMiddleware)
+    app.include_router(auth_router.router)
+
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         """Liveness — does not touch the database."""
@@ -84,7 +89,7 @@ app = create_app()
 
 def run() -> None:
     """Console-script entry point for `jobsvc`."""
-    import uvicorn
+    import uvicorn  # noqa: PLC0415 -- lazy import keeps test-time imports cheap
 
     uvicorn.run(
         "jobsvc.main:app",

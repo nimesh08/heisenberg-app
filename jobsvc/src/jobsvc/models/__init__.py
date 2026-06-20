@@ -9,6 +9,10 @@ includes every table.
 
 from __future__ import annotations
 
+from .audit import AuditLog
+from .billing import Payment
+from .credential import ProviderCredential
+
 # Import order matters for SQLAlchemy's mapper registry: parent tables must
 # be imported before tables that reference them via string-form relationships.
 from .enums import (
@@ -20,12 +24,9 @@ from .enums import (
     SourceKind,
     UserRole,
 )
+from .job import Job, Result
 from .user import Account, Authenticator, Session, User, VerificationToken
 from .workspace import Workspace, WorkspaceFile
-from .credential import ProviderCredential
-from .job import Job, Result
-from .billing import Payment
-from .audit import AuditLog
 
 __all__ = [
     "Account",

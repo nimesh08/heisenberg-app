@@ -10,7 +10,7 @@ transaction (see `jobsvc/services/audit.py` in todo 6+).
 """
 
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
@@ -18,6 +18,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     Column,
     DateTime,
+    ForeignKey,
     Index,
     Integer,
     Numeric,
@@ -26,7 +27,6 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.sql import func
@@ -46,7 +46,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Job(SQLModel, table=True):

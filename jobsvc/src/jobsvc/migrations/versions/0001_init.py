@@ -414,14 +414,19 @@ def _enable_rls() -> None:
     production the heisenberg DB role is created NOSUPERUSER NOBYPASSRLS.)
     """
     expr = "NULLIF(current_setting('app.user_id', true), '')::uuid"
+    bypass = "current_setting('app.bypass_rls', true) = 'on'"
 
     # users: a user can only see their own row.
+    # The bypass guard lets the auth router do email-lookup at login (when
+    # we don't yet know the user_id) and INSERT during registration. The
+    # bypass is set explicitly by `set_bypass_rls(session, True)` and is
+    # transaction-local — it never leaks across requests.
     op.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE users FORCE ROW LEVEL SECURITY")
     op.execute(
         f"CREATE POLICY users_self_rls ON users "
-        f"USING (id = {expr}) "
-        f"WITH CHECK (id = {expr})"
+        f"USING (id = {expr} OR {bypass}) "
+        f"WITH CHECK (id = {expr} OR {bypass})"
     )
 
     # Tables with a user_id column.
@@ -434,14 +439,16 @@ def _enable_rls() -> None:
             f"WITH CHECK (user_id = {expr})"
         )
 
-    # Auth.js tables: column is camelCase 'userId'.
+    # Auth.js tables: column is camelCase 'userId'. The accounts table also
+    # honors `app.bypass_rls` so the OAuth handshake can look up an existing
+    # account by (provider, providerAccountId) before app.user_id is known.
     for table in ("accounts", "sessions", "authenticators"):
         op.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY")
         op.execute(f"ALTER TABLE {table} FORCE ROW LEVEL SECURITY")
         op.execute(
             f'CREATE POLICY {table}_user_rls ON {table} '
-            f'USING ("userId" = {expr}) '
-            f'WITH CHECK ("userId" = {expr})'
+            f'USING ("userId" = {expr} OR {bypass}) '
+            f'WITH CHECK ("userId" = {expr} OR {bypass})'
         )
 
     # audit_log: user_id is nullable. Allow read of own + system rows; insert is

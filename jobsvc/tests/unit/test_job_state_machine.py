@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import pytest
-
 from jobsvc.models import (
     IllegalTransitionError,
     Job,

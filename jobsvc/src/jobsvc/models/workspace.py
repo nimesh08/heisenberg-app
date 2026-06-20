@@ -20,12 +20,12 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     DateTime,
+    ForeignKey,
     Integer,
     String,
     Text,
 )
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.sql import func
 from sqlmodel import Field, Relationship, SQLModel

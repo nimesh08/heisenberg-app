@@ -154,6 +154,26 @@ async def clear_app_user_id(session: AsyncSession) -> None:
     await session.execute(text("SELECT set_config('app.user_id', '', true)"))
 
 
+async def set_bypass_rls(session: AsyncSession, on: bool = True) -> None:
+    """Toggle the `app.bypass_rls` GUC on the current transaction.
+
+    When 'on', RLS policies that include the `bypass` disjunct (currently
+    `users` and the Auth.js adapter tables: `accounts`, `sessions`,
+    `authenticators`) will grant access regardless of `app.user_id`. This is
+    required for the auth router's email-lookup (no user_id known yet) and
+    for the OAuth-account lookup before upsert. transaction-local — never
+    leaks across requests.
+
+    Use only inside the auth router's well-bounded code paths, and prefer
+    setting `app.user_id` and clearing bypass before the *write* whenever
+    possible (so writes still go through the normal RLS path).
+    """
+    await session.execute(
+        text("SELECT set_config('app.bypass_rls', :v, true)"),
+        {"v": "on" if on else "off"},
+    )
+
+
 class StartupCheckError(RuntimeError):
     """Raised when the Postgres preflight fails. Causes the app to refuse to boot."""
 
@@ -233,5 +253,6 @@ __all__ = [
     "reset_engine",
     "session_scope",
     "set_app_user_id",
+    "set_bypass_rls",
     "verify_postgres_ready",
 ]
